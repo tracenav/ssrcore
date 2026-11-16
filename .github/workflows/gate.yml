@@ -1,0 +1,57 @@
+# The gate (DESIGN 5: `uv run pytest`) on Linux and macOS for every Python
+# version from requires-python (>=3.11) to the newest release.
+#
+# Public tests only: the tests that read local recordings skip with their
+# reason, and so do the cross-compiler targets of
+# tests/test_portability.py whose compilers a runner lacks. The
+# host compile, the C program and the counting build run with the runner's
+# cc and c++.
+#
+# The codecs come from the gnsswire repository, checked out beside this one
+# as ../gnsswire, which is where [tool.uv.sources] and uv.lock expect them
+# (DESIGN 2.2, "Wire formats are gnsswire's"). GNSSWIRE_REF must be a tag or
+# commit holding the versions pyproject.toml requires: bits, spartn, rtcm3
+# and nmea 0.2.0, ubx 0.1.1, nav 0.1.0, which are the gnsswire 0.2.0 release.
+# The job runs only where GNSSWIRE_REPOSITORY is reachable and holds that tag.
+name: gate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GNSSWIRE_REPOSITORY: tracenav/gnsswire
+  GNSSWIRE_REF: gnsswire-0.2.0
+
+jobs:
+  pytest:
+    name: pytest (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+    defaults:
+      run:
+        working-directory: ssrcore
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ssrcore
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GNSSWIRE_REPOSITORY }}
+          ref: ${{ env.GNSSWIRE_REF }}
+          path: gnsswire
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      # Builds the kernel extensions (setup.py) with the runner's C compiler
+      # and installs the codecs from ../gnsswire, as uv.lock records them.
+      - run: uv sync --locked
+      - run: uv run --locked pytest

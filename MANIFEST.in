@@ -1,0 +1,22 @@
+# [design: the source distribution is the repository's public tree: the
+# kernels' C sources and headers and the bindings (which build the wheel),
+# the documents, the examples, the public tests and the tools, so that a
+# packager can build, test and read it offline. Never build/ (local build
+# output and data), never the staged specifications of refs/ (only its
+# README), never a compiled or generated file, never the untracked notes
+# AGENTS.md and STATUS.md at the root (which a SOURCES.txt left by an
+# earlier build would otherwise carry over).]
+include kernels/include/ssrcore/*.h
+include kernels/src/*.c
+include src/ssrcore/_kernels/*.pyx
+include RELEASES.md THIRD_PARTY_NOTICES.md uv.lock .gitattributes refs/README.md
+graft docs
+graft examples
+graft tests
+graft tools
+prune build
+prune dist
+global-exclude *.so *.o *.a *.pyc *.pyd *.dylib
+global-exclude __pycache__
+exclude src/ssrcore/_kernels/*.c
+exclude AGENTS.md STATUS.md

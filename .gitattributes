@@ -1,0 +1,3 @@
+# [design: every text file is stored and checked out with LF, so that the C
+# sources, the test data and the sdist are the same bytes on every host]
+* text=auto eol=lf

@@ -1,0 +1,49 @@
+[build-system]
+# setuptools 77: PEP 639 licence metadata. Cython 3: the kernel bindings.
+requires = ["setuptools>=77", "Cython>=3.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ssrcore"
+version = "0.1.0"
+description = "GNSS state-space corrections engine: SPARTN and broadcast ephemerides in; satellite states, line-of-sight corrections and virtual base station observations out."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+requires-python = ">=3.11"   # the gnsswire distributions require 3.11
+# The compatible range of each gnsswire codec (gnsswire README, Versions;
+# RELEASES.md 0.2.0): >= the release whose interface the code uses, < its next
+# compatibility number.
+#   bits 0.2.0     the NEGATIVE_ZERO of a GLONASS sign-magnitude field (nav)
+#   spartn 0.2.0   extension, Error, decode_ocb_header, BPAC
+#   rtcm3 0.2.0    MSM1 to MSM7, 1006, 1044, IGS SSR 4076, extension, Error
+#   ubx 0.1.1      RXM-RAWX (refused visibly) and the Error base
+#   nmea 0.2.0     the Error base and the tolerant GGA, ZDA
+#   nav 0.1.0      navigation words to ephemeris fields
+dependencies = [
+    "gnsswire-bits>=0.2.0,<0.3",
+    "gnsswire-spartn>=0.2.0,<0.3",
+    "gnsswire-rtcm3>=0.2.0,<0.3",
+    "gnsswire-ubx>=0.1.1,<0.2",
+    "gnsswire-nmea>=0.2.0,<0.3",
+    "gnsswire-nav>=0.1.0,<0.2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+# The codecs come from the sibling checkout (DESIGN 2.2, "Wire formats are gnsswire's").
+[tool.uv.sources]
+gnsswire-bits = { path = "../gnsswire/packages/bits", editable = true }
+gnsswire-spartn = { path = "../gnsswire/packages/spartn", editable = true }
+gnsswire-rtcm3 = { path = "../gnsswire/packages/rtcm3", editable = true }
+gnsswire-ubx = { path = "../gnsswire/packages/ubx", editable = true }
+gnsswire-nmea = { path = "../gnsswire/packages/nmea", editable = true }
+gnsswire-nav = { path = "../gnsswire/packages/nav", editable = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"   # list every skip with its reason
