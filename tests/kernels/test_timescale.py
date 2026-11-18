@@ -13,6 +13,7 @@ Independent routes used here, not the kernel's own arithmetic:
   against the labels UTC must take around it, 23:59:59, 23:59:60, 00:00:00.
 """
 
+import math
 import random
 from datetime import date, timedelta
 
@@ -278,6 +279,10 @@ def test_spartn_tag_round_trip_and_range():
             w, s = ts.spartn_tag_to_gps(tag, scale, leap)
             assert ts.spartn_tag_from_gps(w, s, scale, leap) == tag
             assert ts.spartn_tag_from_gps(w, s + 0.999, scale, leap) == tag
+            # Just below the next second: still this tag, never the next (the count from
+            # 2010 as one double cannot hold the fraction).
+            assert ts.spartn_tag_from_gps(w, math.nextafter(s + 1.0, 0.0), scale, leap) == tag
+            assert ts.spartn_tag_from_gps(w, s + 0.99999998, scale, leap) == tag
     with pytest.raises(ValueError):
         ts.spartn_tag_from_gps(1564, 431999.0, Scale.GPS)
     # QZSS time keeps the GPS week and has no whole-second offset (RTCM DF428, unlike

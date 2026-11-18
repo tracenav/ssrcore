@@ -450,7 +450,11 @@ int32_t ssr_timescale_spartn_tag32_from_gps(int32_t week, double sow, int32_t sc
     if (scale_to_gps(scale, leap_seconds, &offset) != SSR_TIMESCALE_OK) {
         return SSR_TIMESCALE_RANGE;
     }
-    t = floor(ssr_timescale_diff(week, sow - offset, SPARTN_EPOCH_WEEK, (double)SPARTN_EPOCH_SOW));
+    /* [design: the fraction is dropped before the count from 2010, whose double
+     * resolves only about 6e-8 s near 2^29 s, so a time just below a whole
+     * second would round up to it and get a tag after the time; the offset is
+     * whole seconds, so floor(sow) - offset is exact] */
+    t = ssr_timescale_diff(week, floor(sow) - offset, SPARTN_EPOCH_WEEK, (double)SPARTN_EPOCH_SOW);
     if (!(t >= 0.0 && t <= 4294967295.0)) {
         return SSR_TIMESCALE_RANGE;
     }
